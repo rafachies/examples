@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<jboss-deployment-structure>
+	<deployment>
+		<dependencies>
+			<module name="deployment.artifact-jar.jar" meta-inf="import"/>
+			<!-- Use the line below (with meta-inf) to get this working on EAP 6  -->
+			<!-- <module name="deployment.artifact-jar.jar" meta-inf="import"/> -->
+		</dependencies>
+	</deployment>
+</jboss-deployment-structure>
