@@ -7,7 +7,7 @@ mvn install to generate the three artifacts:
   -- dosgi-consumer: Holds a camel route that calls the service
   
 The idea is to deploy the dosgi-services in one fabric container, and the dosgi-consumer in a separated container. When the dosgi-services bundle is started, the service is registered in zookeper, so it can be called by reference in any other bundle, in any other container.
-I order to simulate this:
+In order to reproduce:
 
 - Install JBoss Fuse
 - Create the fabric
