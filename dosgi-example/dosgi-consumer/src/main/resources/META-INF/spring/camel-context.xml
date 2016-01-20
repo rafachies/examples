@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:osgi="http://www.springframework.org/schema/osgi"
+	xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd
+       http://www.springframework.org/schema/osgi http://www.springframework.org/schema/osgi/spring-osgi-1.2.xsd">
+
+
+	<osgi:reference id="calculatorService" interface="br.com.redhat.dosgi.CalculatorService" timeout="10000"/>
+
+	<camelContext xmlns="http://camel.apache.org/schema/spring">
+		<restConfiguration component="jetty" host="0.0.0.0" port="9090"/>
+		<rest id="dosgiRoute" path="/dosgi">
+    		<get uri="/calculate">
+      			<to uri="direct:calculateRoute"/>
+    		</get>
+    	</rest>
+		
+		<route id="calculateRoute">
+			<from uri="direct:calculateRoute" />
+			<log message="Calling CalculatorService in some container in the Fabric ..." />
+			<bean ref="calculatorService" method="sum(5,4)" />
+			<log message="CalculatorService result: ${body}" />
+		</route>
+	</camelContext>
+
+</beans>
