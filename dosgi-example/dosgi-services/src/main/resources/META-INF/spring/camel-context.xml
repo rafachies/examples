@@ -9,7 +9,7 @@
 
 	<bean id="calculatorService" class="br.com.redhat.dosgi.CalculatorServiceBean" />
 
-	<osgi:service ref="calculatorService" auto-export="interfaces" >
+	<osgi:service ref="calculatorService" auto-export="interfaces" ranking="10" >
 		<service-properties>
 			<entry key="service.exported.interfaces" value="*" />
 		</service-properties>
