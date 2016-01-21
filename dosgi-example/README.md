@@ -27,3 +27,6 @@ Call this URL on a browser, and check the result.
 
 To prove the service was called remotely, you can just stop the container "contanier-dosgi-services". If you call the REST endpoint again, it'll not work.
 
+If more than one bundle/container has the service exported, the consumer will create a proxy to one of them, and so using it for all calls. In other words, there is no load balance between the bundles/containers.
+
+If you want to create a new version of the service in a container, you can change the ranking attribute on the osgi:service. The greatest ranking will be called by the consumers.
