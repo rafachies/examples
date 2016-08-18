@@ -1,0 +1,55 @@
+This is an example in how to run a JEE application on EAP6 producing and consumig JMS messages from an external A-MQ broker
+
+- Use the standalone-full.xml in order to start your EAP 6
+- Deploy the activeMQ RAR (activemq-rar-5.11.0.redhat-621084.rar) on EAP 6
+- Build the project with "mvn clean install" and deploy the WAR on EAP 6
+- Run the producer servlet invoking: http://localhost:8080/eap-external-broker/producer?message=yourmessage
+- We assume that you have A-MQ running with default port and user/pwd admin
+
+The core configurations on standalone-full.xml are:
+
+- Changing the default RA para os MDB's
+
+            <mdb>
+                <resource-adapter-ref resource-adapter-name="activemq.rar"/>
+                <bean-instance-pool-ref pool-name="mdb-strict-max-pool"/>
+            </mdb>
+
+
+- Creating the Resource Adapter
+
+  <subsystem xmlns="urn:jboss:domain:resource-adapters:1.1">
+            <resource-adapters>
+                <resource-adapter id="activemq.rar">
+                    <archive>
+                        activemq-rar-5.11.0.redhat-621084.rar
+                    </archive>
+                    <transaction-support>XATransaction</transaction-support>
+                    <config-property name="ServerUrl">
+                        tcp://localhost:61616
+                    </config-property>
+                    <config-property name="UserName">
+                        admin
+                    </config-property>
+                    <config-property name="UseInboundSession">
+                        false
+                    </config-property>
+                    <config-property name="Password">
+                        admin
+                    </config-property>
+                    <connection-definitions>
+                        <connection-definition class-name="org.apache.activemq.ra.ActiveMQManagedConnectionFactory" jndi-name="java:/ConnectionFactory" enabled="true" use-java-context="true" pool-name="ConnectionFactory"/>
+                    </connection-definitions>
+                    <admin-objects>
+                        <admin-object class-name="org.apache.activemq.command.ActiveMQQueue" jndi-name="java:/queue/ChiesQueue" use-java-context="true" pool-name="TestQueue">
+                            <config-property name="PhysicalName">
+                                queue/ChiesQueue
+                            </config-property>
+                        </admin-object>
+                    </admin-objects>
+                </resource-adapter>
+            </resource-adapters>
+  </subsystem>
+
+
+
