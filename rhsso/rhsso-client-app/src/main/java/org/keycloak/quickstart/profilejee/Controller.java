@@ -21,6 +21,9 @@ import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 
+import org.keycloak.KeycloakPrincipal;
+import org.keycloak.KeycloakSecurityContext;
+
 
 
 public class Controller {
@@ -36,8 +39,16 @@ public class Controller {
     public boolean isLoggedIn(HttpServletRequest req) throws Exception {
     	logger.info("ADMIN Role " + req.isUserInRole("ADMIN"));
     	logger.info("DEV Role " + req.isUserInRole("DEVELOPER"));
-    	logger.info("DBA Role " + req.isUserInRole("DBA"));
+    	logger.info("DBA Role " + req.isUserInRole("OPERATOR"));
     	return req.getUserPrincipal() != null;
     }
+    
+    public String listRoles(HttpServletRequest req) throws Exception {
+    	KeycloakPrincipal<KeycloakSecurityContext> principal = (KeycloakPrincipal) req.getUserPrincipal();
+    	return principal.getKeycloakSecurityContext().getToken().getRealmAccess().getRoles().toString();
+    }
 
+    
+    
+   
 }

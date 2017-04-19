@@ -17,6 +17,7 @@
 package org.rchies.example.rhsso.dbprovider;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.ejb.Local;
 import javax.ejb.Stateful;
@@ -42,7 +43,7 @@ import org.keycloak.storage.user.UserLookupProvider;
 @Stateful
 @Local(DBUserStorageProvider.class)
 public class DBUserStorageProvider implements UserStorageProvider, UserLookupProvider, CredentialInputValidator {
-	
+
 	public static final String PASSWORD_CACHE_KEY = UserAdapter.class.getName() + ".password";
 
 	private static final Logger logger = Logger.getLogger(DBUserStorageProvider.class);
@@ -52,7 +53,6 @@ public class DBUserStorageProvider implements UserStorageProvider, UserLookupPro
 
 	protected ComponentModel model;
 	protected KeycloakSession session;
-	
 
 	@Override
 	public void close() {
@@ -89,24 +89,42 @@ public class DBUserStorageProvider implements UserStorageProvider, UserLookupPro
 		UserEntity userEntity = result.get(0);
 		return new UserAdapter(session, realmModel, model, userEntity);
 	}
-	
+
 	@Override
 	public boolean isConfiguredFor(RealmModel realMode, UserModel userModel, String credentialType) {
-		 logger.info(">>> isConfiguredFor");
-		return supportsCredentialType(credentialType) && getPassword(userModel, realMode) != null;
+		//		return supportsCredentialType(credentialType) && getPassword(userModel, realMode) != null;
+		return true;
 	}
 
 	@Override
 	public boolean isValid(RealmModel realmModel, UserModel userModel, CredentialInput credentialInput) {
 		logger.info(">>> Validating credential: " + ((UserCredentialModel)credentialInput).getValue());
-		String password = getPassword(userModel, realmModel);
+		UserEntity userEntity = getUserEntity(userModel, realmModel);
 		UserCredentialModel credential = (UserCredentialModel)credentialInput;
+		if (passwordMatches(userEntity.getPassword(), credential)) {
+			grantRoles(realmModel, userModel, userEntity);
+			return true;
+		}
+		return false;
+	}
+
+	private void grantRoles(RealmModel realmModel, UserModel userModel, UserEntity userEntity) {
+		for (RoleEntity roleEntity : userEntity.getRoles()) {
+			RoleModel realmRole = realmModel.getRole(roleEntity.getRole());
+			if (realmRole != null && !userModel.hasRole(realmRole)) {
+				userModel.grantRole(realmRole);
+				logger.infof("Granted user %s, role %s", userEntity.getUsername(), roleEntity.getRole());
+			}
+		}
+	}
+
+	private boolean passwordMatches(String password, UserCredentialModel credential) {
 		return password != null && password.equals(credential.getValue());
 	}
 
 	@Override
 	public boolean supportsCredentialType(String credentialType) {
-		 return CredentialModel.PASSWORD.equals(credentialType);
+		return CredentialModel.PASSWORD.equals(credentialType);
 	}
 
 	public void setModel(ComponentModel model) {
@@ -116,21 +134,13 @@ public class DBUserStorageProvider implements UserStorageProvider, UserLookupPro
 	public void setSession(KeycloakSession session) {
 		this.session = session;
 	}
-	
-	public String getPassword(UserModel user, RealmModel realmModel) {
+
+	public UserEntity getUserEntity(UserModel user, RealmModel realmModel) {
 		TypedQuery<UserEntity> query = em.createNamedQuery("getUserByUsername", UserEntity.class);
 		query.setParameter("username", user.getUsername());
 		UserEntity userEntity = query.getSingleResult();
-        logger.info(">>> Get Password: " + userEntity.getPassword());
-        for (RoleEntity roleEntity : userEntity.getRoles()) {
-        	 RoleModel roleModel = realmModel.getRole(roleEntity.getUsername());
-             if (roleModel != null) {
-                 user.grantRole(roleModel);
-                 logger.infof("Granted user %s, role %s", userEntity.getUsername(), roleEntity.getRole());
-             }
-		}
-        return userEntity.getPassword();
-    }
+		return userEntity;
+	}
 
 
 }
