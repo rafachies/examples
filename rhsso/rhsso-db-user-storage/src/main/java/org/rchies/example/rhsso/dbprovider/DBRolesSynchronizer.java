@@ -10,7 +10,11 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
 import org.jboss.logging.Logger;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
+import org.keycloak.models.UserProvider;
 import org.keycloak.storage.user.SynchronizationResult;
 
 @Stateless
@@ -22,8 +26,8 @@ public class DBRolesSynchronizer {
 	private static final Logger logger = Logger.getLogger(DBRolesSynchronizer.class);
 
 	@TransactionAttribute(TransactionAttributeType.REQUIRED)
-	public SynchronizationResult syncAll(RealmModel realm, SynchronizationResult synchronizationResult) {
-		int rolesAdded = 0;
+	public SynchronizationResult syncAll(KeycloakSessionFactory sessionFactory, RealmModel realm, SynchronizationResult synchronizationResult) {
+		int itensAdded = 0;
 		Query query = em.createNamedQuery("getAllRoles");
 		List<RoleEntity> result = query.getResultList();
 		for (RoleEntity roleEntity : result) {
@@ -31,13 +35,26 @@ public class DBRolesSynchronizer {
 				if (isNewRole(realm, roleEntity)) {
 					logger.info(">>> Syncing roles: " + roleEntity.getRole());
 					realm.addRole(roleEntity.getRole());
-					rolesAdded++;
+					itensAdded++;
 				}
 			} catch (Exception e) {
 				logger.warn(e);
 			}
 		}
-		synchronizationResult.setAdded(rolesAdded);
+		
+		query = em.createNamedQuery("getAllUsers");
+		KeycloakSession session = sessionFactory.create();
+		UserProvider userProvider = session.userLocalStorage();
+		List<UserEntity> federatedUsers = query.getResultList();
+		for (UserEntity federatedUser : federatedUsers) {
+			UserModel userModel = userProvider.getUserByUsername(federatedUser.getUsername(), realm);
+			if (userModel == null) {
+				UserModel userAdded = userProvider.addUser(realm, federatedUser.getUsername());
+				userAdded.setEnabled(true);
+				itensAdded++;
+			}
+		}
+		synchronizationResult.setAdded(itensAdded);
 		return synchronizationResult;
 	}
 

@@ -9,6 +9,7 @@ import org.keycloak.component.ComponentModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.KeycloakSessionTask;
+import org.keycloak.models.UserProvider;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.storage.UserStorageProviderFactory;
 import org.keycloak.storage.UserStorageProviderModel;
@@ -59,7 +60,7 @@ public class DBUserStorageProviderFactory implements UserStorageProviderFactory<
 				try {
 					InitialContext ctx = new InitialContext();
 					DBRolesSynchronizer synchronizer = (DBRolesSynchronizer)ctx.lookup("java:global/rhsso-db-user-storage/DBRolesSynchronizer");
-					synchronizer.syncAll(session.realms().getRealm(realmId), synchronizationResult);
+					synchronizer.syncAll(sessionFactory, session.realms().getRealm(realmId), synchronizationResult);
 				} catch (Exception e) {
 					throw new RuntimeException(e);
 				}
