@@ -1,0 +1,40 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.rchies.demo</groupId>
+  <artifactId>jms-example</artifactId>
+  <version>1.0.0</version>
+  
+  <dependencies>
+  	<dependency>
+  		<groupId>org.apache.activemq</groupId>
+  		<artifactId>activemq-all</artifactId>
+  		<version>5.13.2</version>
+  	</dependency>
+  </dependencies>
+  
+  <build>
+  	<plugins>
+  		<plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <index>true</index>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <mainClass>org.rchies.demo.jmsexample.Main</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+  	</plugins>
+  </build>
+  
+  <repositories>
+  	<repository>
+  		<id>redhat</id>
+  		<url>https://maven.repository.redhat.com/ga/</url>
+  	</repository>
+  </repositories>
+</project>
