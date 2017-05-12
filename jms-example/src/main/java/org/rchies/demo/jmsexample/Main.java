@@ -15,6 +15,10 @@ import org.apache.activemq.ActiveMQConnectionFactory;
 public class Main {
 
 	public static void main(String[] args) throws Exception {
+		System.setProperty("javax.net.ssl.keyStore", "/Users/rafaelchies/development/workshop-amq/amq-leste/conf/amq-client.ks");
+		System.setProperty("javax.net.ssl.keyStorePassword", "password");
+		System.setProperty("javax.net.ssl.trustStore", "/Users/rafaelchies/development/workshop-amq/amq-leste/conf/amq-client.ts");
+		System.setProperty("javax.net.ssl.trustStorePassword", "password");
 		new Main().launch(args);
 	}
 
@@ -89,6 +93,7 @@ public class Main {
 
 	private void sendMessage(String messageText, Connection connection, Session session, Destination destination) throws JMSException {
 		MessageProducer messageProducer = session.createProducer(destination);
+		//messageProducer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 		TextMessage requestMessage = session.createTextMessage();
 		requestMessage.setText(messageText);
 		messageProducer.send(requestMessage);
