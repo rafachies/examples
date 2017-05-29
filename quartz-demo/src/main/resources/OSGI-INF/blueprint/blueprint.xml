@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:camel="http://camel.apache.org/schema/blueprint"
+       xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+       xsi:schemaLocation="
+       http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+ 	
+ 	
+ 	<cm:property-placeholder persistent-id="quartz-demo" update-strategy="reload" />
+		
+  	
+	<bean id="quartz2" class="org.apache.camel.component.quartz2.QuartzComponent">
+	    <property name="propertiesFile" value="quartz.properties"/>
+	</bean>
+	
+		
+  <camelContext trace="false" id="blueprintContext" xmlns="http://camel.apache.org/schema/blueprint">
+    <route id="quartzRoute">
+        <from uri="quartz2://groupName/myTimer?stateful=true&amp;cron=0/15+*+*+*+*+?"/>
+        <setBody>
+            <simple>Hello. I've been fired by Quartz2</simple>
+        </setBody>
+        <to uri="log:org.rchies?level=INFO"/>
+    </route>
+ </camelContext>
+
+</blueprint>
