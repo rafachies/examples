@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<blueprint xmlns="http://www.osgi.org/xmlns/blueprint/v1.0.0"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:camel="http://camel.apache.org/schema/blueprint"
+       xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
+       xsi:schemaLocation="
+       http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
+       http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint.xsd">
+ 		
+ 
+ 	<reference id="httpService" interface="org.osgi.service.http.HttpService"/>
+
+  <bean class="org.apache.camel.component.servlet.osgi.OsgiServletRegisterer"
+        init-method="register"
+        destroy-method="unregister">
+    <property name="alias" value="/contract-lock/rest"/>
+    <property name="httpService" ref="httpService"/>
+    <property name="servlet" ref="camelServlet"/>
+  </bean>
+
+  <bean id="camelServlet" class="org.apache.camel.component.servlet.CamelHttpTransportServlet"/>
+ 		
+  <bean id="contractChecker" class="org.chies.fuse.ContractExecutionChecker"/>
+ 		
+  <camelContext trace="false" id="blueprintContext" xmlns="http://camel.apache.org/schema/blueprint">
+  
+  	<restConfiguration component="servlet" contextPath="/contract-lock/rest"/>
+    
+    <rest path="/contract">
+      <get uri="/{id}">
+        <to uri="direct:job" />
+      </get>
+    </rest>  
+    
+    <route id="cacheRoute">
+        <from uri="direct:job"/>
+        <to uri="bean:contractChecker?method=acquireLock(${header.id})"/>
+        <log message="Lock acquired for ${header.id}"/>      
+        <!-- Simulate the time (ms) usually taken for processing the contract ... -->
+        <delay><constant>15000</constant></delay>
+        <to uri="bean:contractChecker?method=releaseLock(${header.id})"/>
+		<log message="Lock released for ${header.id}"/>        
+    </route>
+    
+ </camelContext>
+
+</blueprint>

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.chies.fuse</groupId>
+  <artifactId>contract-lock-example</artifactId>
+  <packaging>bundle</packaging>
+  <version>8.0.0</version>
+
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <fabric8.parentProfiles>feature-camel</fabric8.parentProfiles>                                                       
+  </properties>
+
+  <repositories>
+    <repository>
+      <id>redhat</id>
+      <name>FuseSource Release Repository</name>
+      <url>https://maven.repository.redhat.com/ga</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </repository>
+  </repositories>
+
+  <pluginRepositories>
+    <pluginRepository>
+      <id>release.fusesource.org</id>
+      <name>FuseSource Release Repository</name>
+      <url>http://repo.fusesource.com/nexus/content/repositories/releases</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+    </pluginRepository>
+    <pluginRepository>
+     <id>ea.fusesource.org</id>
+     <name>FuseSource Community Early Access Release Repository</name>
+     <url>http://repo.fusesource.com/nexus/content/groups/ea</url>
+     <snapshots>
+      <enabled>false</enabled>
+     </snapshots>
+     <releases>
+      <enabled>true</enabled>
+     </releases>
+    </pluginRepository>      
+    <pluginRepository>
+      <id>snapshot.fusesource.org</id>
+      <name>FuseSource Snapshot Repository</name>
+      <url>http://repo.fusesource.com/nexus/content/repositories/snapshots</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+    </pluginRepository>
+  </pluginRepositories>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-blueprint</artifactId>
+      <version>2.17.0.redhat-630187</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>activemq-osgi</artifactId>
+      <version>5.11.0.redhat-630187</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-servlet</artifactId>
+      <version>2.17.0.redhat-630187</version>
+    </dependency>
+	
+
+    <!-- logging -->
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>jcl-over-slf4j</artifactId>
+      <version>1.7.5</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <defaultGoal>install</defaultGoal>
+
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.5.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>2.6</version>
+        <configuration>
+          <encoding>UTF-8</encoding>
+        </configuration>
+      </plugin>
+
+      <!-- to generate the MANIFEST-FILE of the bundle -->
+      <plugin>
+        <groupId>org.apache.felix</groupId>
+        <artifactId>maven-bundle-plugin</artifactId>
+        <version>2.3.7</version>
+        <extensions>true</extensions>
+        <configuration>
+          <instructions>
+            <Bundle-SymbolicName>contract-lock</Bundle-SymbolicName>
+            <Private-Package>org.chies.fuse.*</Private-Package>
+            <DynamicImport-Package>*</DynamicImport-Package>
+            <Import-Package>javax.jms;version="[1.1,3)",org.apache.activemq;version="[5.11,6)",org.apache.camel;version="[2.17,3)",org.osgi.service.blueprint;version="[1.0.0,2.0.0)"</Import-Package>
+          </instructions>
+        </configuration>
+      </plugin>
+
+      <!-- to run the example using mvn camel:run -->
+      <plugin>
+        <groupId>org.apache.camel</groupId>
+        <artifactId>camel-maven-plugin</artifactId>
+        <version>2.15.1.redhat-620133</version>
+        <configuration>
+          <useBlueprint>true</useBlueprint>
+        </configuration>
+      </plugin>
+	  <!-- For Fabric8 deployment -->
+	  <plugin>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-maven-plugin</artifactId>  
+        <configuration>           
+			<jolokiaUrl>http://localhost:8181/jolokia</jolokiaUrl> 
+		</configuration>      
+		<version>1.2.0.redhat-133</version>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>
