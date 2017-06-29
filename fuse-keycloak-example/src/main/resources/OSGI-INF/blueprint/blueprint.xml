@@ -24,7 +24,7 @@
 
 
 	<!-- SSO STUFFS -->
-	<httpj:engine-factory bus="fafa">
+	<httpj:engine-factory bus="cxf">
 		<httpj:engine port="8484">
 			<httpj:handlers>
 				<ref component-id="securityHandler" />
