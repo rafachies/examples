@@ -26,6 +26,7 @@
         http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd">
 
     <import resource="classpath:META-INF/cxf/cxf.xml" />
+   
 
     <bean id="keycloakConfigResolver" class="org.keycloak.adapters.osgi.BundleBasedKeycloakConfigResolver">
         <property name="bundleContext" ref="bundleContext" />
@@ -61,13 +62,13 @@
     </bean>
     
 
-    <bean id="constraintMappingRest" class="org.eclipse.jetty.security.ConstraintMapping">
-        <property name="constraint" ref="constraintUser"/>
-        <property name="pathSpec" value="/cxf/rest/secured/*"/>
-    </bean>
+<!--     <bean id="constraintMappingRest" class="org.eclipse.jetty.security.ConstraintMapping"> -->
+<!--         <property name="constraint" ref="constraintUser"/> -->
+<!--         <property name="pathSpec" value="/rest/secured/*"/> -->
+<!--     </bean> -->
     <bean id="constraintMappingSoap" class="org.eclipse.jetty.security.ConstraintMapping">
         <property name="constraint" ref="constraintSoap"/>
-        <property name="pathSpec" value="/cxf/soap/*"/>
+        <property name="pathSpec" value="/soap/*"/>
     </bean>
 
     <bean id="securityHandler" class="org.eclipse.jetty.security.ConstraintSecurityHandler">
@@ -75,7 +76,7 @@
         <property name="constraintMappings">
             <list>
 				<ref local="constraintMappingSoap" />
-                <ref local="constraintMappingRest" />
+<!--                 <ref local="constraintMappingRest" /> -->
             </list>
         </property>
         <property name="authMethod" value="BASIC"/>
@@ -91,16 +92,16 @@
         </httpj:engine>
     </httpj:engine-factory>
     
-    <bean id="helloResourceBean" class="org.keycloak.quickstart.fuse.cxf.rs.Resource" />
+<!--     <bean id="helloResourceBean" class="org.keycloak.quickstart.fuse.cxf.rs.Resource" /> -->
 
-    <jaxrs:server id="cxfJaxrsServer" address="http://localhost:8282/rest">
-        <jaxrs:providers>
-            <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider" />
-        </jaxrs:providers>
-        <jaxrs:serviceBeans>
-            <ref bean="helloResourceBean" />
-        </jaxrs:serviceBeans>
-    </jaxrs:server>
+<!--     <jaxrs:server id="cxfJaxrsServer" address="http://localhost:8282/rest"> -->
+<!--         <jaxrs:providers> -->
+<!--             <bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider" /> -->
+<!--         </jaxrs:providers> -->
+<!--         <jaxrs:serviceBeans> -->
+<!--             <ref bean="helloResourceBean" /> -->
+<!--         </jaxrs:serviceBeans> -->
+<!--     </jaxrs:server> -->
     
     <jaxws:endpoint implementor="org.keycloak.quickstart.fuse.cxf.ws.ProductImpl"
                     address="http://localhost:8282/soap/ProductService"/>
