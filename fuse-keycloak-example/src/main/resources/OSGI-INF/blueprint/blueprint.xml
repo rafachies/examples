@@ -13,39 +13,25 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:camel="http://camel.apache.org/schema/blueprint"
 	xmlns:camel-cxf="http://camel.apache.org/schema/blueprint/cxf" 
-	xmlns:jaxws="http://cxf.apache.org/blueprint/jaxws"
-	xmlns:cxf="http://cxf.apache.org/blueprint/core"
-	xmlns:cm="http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0"
-	xmlns:http="http://cxf.apache.org/transports/http/configuration"
+	xmlns:cxf="http://camel.apache.org/schema/blueprint/cxf"
 	xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration"
 	xsi:schemaLocation="
        http://www.osgi.org/xmlns/blueprint/v1.0.0 http://www.osgi.org/xmlns/blueprint/v1.0.0/blueprint.xsd
-       http://aries.apache.org/blueprint/xmlns/blueprint-cm/v1.1.0 http://aries.apache.org/schemas/blueprint-cm/blueprint-cm-1.1.0.xsd 
-       http://camel.apache.org/schema/cxf http://camel.apache.org/schema/cxf/camel-cxf.xsd
        http://cxf.apache.org/blueprint/core http://cxf.apache.org/schemas/blueprint/core.xsd 
+       http://cxf.apache.org/schemas/blueprint/core.xsd http://camel.apache.org/schema/blueprint/cxf
        http://camel.apache.org/schema/blueprint/cxf http://camel.apache.org/schema/blueprint/cxf/camel-cxf.xsd
-       http://cxf.apache.org/blueprint/jaxws http://cxf.apache.org/schemas/blueprint/jaxws.xsd
-       http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd
-       http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint-2.17.1.xsd
-       http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd">
+       http://camel.apache.org/schema/blueprint http://camel.apache.org/schema/blueprint/camel-blueprint-2.17.1.xsd">
 
 
-	<httpj:engine-factory bus="cxf" id="kc-cxf-endpoint">
-		<httpj:engine port="8282">
+	<!-- SSO STUFFS -->
+	<httpj:engine-factory bus="fafa">
+		<httpj:engine port="8484">
 			<httpj:handlers>
 				<ref component-id="securityHandler" />
 			</httpj:handlers>
 			<httpj:sessionSupport>true</httpj:sessionSupport>
 		</httpj:engine>
 	</httpj:engine-factory>
-
-
-	<!-- CXF servers -->
-	<camel-cxf:rsServer id="testServiceServer" address="http://localhost:8282/rest" serviceClass="org.keycloak.quickstart.fuse.cxf.rs.Resource">
-		<camel-cxf:providers>
-			<bean class="org.apache.cxf.jaxrs.provider.json.JSONProvider" />
-		</camel-cxf:providers>
-	</camel-cxf:rsServer>
 	
 	<bean id="kcAdapterConfig"
 		class="org.keycloak.representations.adapters.config.AdapterConfig">
@@ -70,30 +56,66 @@
 		<property name="authenticate" value="true" />
 		<property name="dataConstraint" value="0" />
 	</bean>
+	
+	<bean id="constraintSoap" class="org.eclipse.jetty.util.security.Constraint">
+		<property name="name" value="anyname" />
+		<property name="roles">
+			<list>
+				<value>user</value>
+			</list>
+		</property>
+		<property name="authenticate" value="true" />
+		<property name="dataConstraint" value="0" />
+	</bean>
 
 	<bean id="constraintMapping" class="org.eclipse.jetty.security.ConstraintMapping">
 		<property name="constraint" ref="constraint" />
 		<property name="pathSpec" value="/rest/secured/*" />
 	</bean>
 
+	<bean id="constraintMappingSoap" class="org.eclipse.jetty.security.ConstraintMapping">
+		<property name="constraint" ref="constraintSoap" />
+		<property name="pathSpec" value="/soap/*" />
+	</bean>
+	
 	<bean id="securityHandler" class="org.eclipse.jetty.security.ConstraintSecurityHandler">
 		<property name="authenticator" ref="keycloakAuthenticator" />
 		<property name="constraintMappings">
 			<list>
 				<ref component-id="constraintMapping" />
+				<ref component-id="constraintMappingSoap" />
 			</list>
 		</property>
 		<property name="authMethod" value="BASIC" />
 		<property name="realmName" value="does-not-matter" />
 	</bean>
 	
+	
+	<!-- ENDPOINTS -->
+	<cxf:cxfEndpoint address="http://localhost:8484/soap/ProductService" id="soapWS" serviceClass="org.keycloak.quickstart.fuse.cxf.ws.ProductImpl" />
+	
+	<camel-cxf:rsServer id="testServiceServer" address="http://localhost:8484/rest" serviceClass="org.keycloak.quickstart.fuse.cxf.rs.Resource">
+		<camel-cxf:providers>
+			<bean class="org.apache.cxf.jaxrs.provider.json.JSONProvider" />
+		</camel-cxf:providers>
+	</camel-cxf:rsServer>
+	
+	
+	<!-- ROUTES -->
 	<camelContext id="blueprintContext" trace="false" xmlns="http://camel.apache.org/schema/blueprint">
-		<route id="rest">
+		<route id="restRoute">
 			<from uri="cxfrs:bean:testServiceServer" />
 			<setBody>
 				<constant>You were authorized to call this route.</constant>
 			</setBody>
 		</route>
+		
+		<route id="soap">
+            <from id="soapRoute" uri="cxf:bean:soapWS"/>
+            <setBody>
+				<constant>You were authorized to call this route.</constant>
+			</setBody>
+        </route>
 	</camelContext>
 
 </blueprint>
