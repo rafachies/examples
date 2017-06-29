@@ -1,121 +1,44 @@
-service-cxf-jaxrs: Apache CXF JAX-RS Service
+Fuse and RHSSO Integration
 ============================================
 
-Level: Beginner  
-Technologies: Apache CXF, JavaEE, JBoss Fuse  
-Summary: JAX-RS Service  
-Target Product: RH-SSO, JBoss Fuse  
-Source: <https://github.com/redhat-developer/redhat-sso-quickstarts>  
+Assumptions
+---------------
+
+* You have the RHSSO installed and runing on port 8080
+* The master realm has a client named "fuse-client"
+* The master real has a user with the role "user"
 
 
-What is it?
+Preparing Fuse
 -----------
 
-The `service-cxf-jaxrs` quickstart demonstrates how to write a Apache CXF JAX-RS service that is secured with RH-SSO and deploy
-it to JBoss Fuse.
+Getting a fresh installation of JBoss Fuse 6.3, we need to install the keycloak features with the following commands:
 
-There are 3 endpoints exposed by the service:
+* features:addurl mvn:org.keycloak/keycloak-osgi-features/2.5.5.Final-redhat-1/xml/features
+* features:install keycloak
+* features:install keycloak-jetty9-adapter
 
-* `public` - requires no authentication
-* `secured` - can be invoked by users with the `user` role
-* `admin` - can be invoked by users with the `admin` role
+Intalling the example
+-----------
 
-The endpoints are very simple and will only return a simple message stating what endpoint was invoked.
+* Build this project with Maven
+* osgi:install mvn:org.rchies.fuse/fuse-keycloak-example/3.0.0
 
-
-System Requirements
+Running the Example
 -------------------
 
-You need to have JBoss Fuse 6.3.0
+* Call the unsecured rest interface and you should be fine with a 200 response code
+  `curl http://localhost:8484/rest/unsecured/resource/message`
 
-All you need to build this project is Java 8.0 (Java SDK 1.8) or later and Maven 3.1.1 or later.
+* Call the secured rest interface and you should receive a 401
+  `curl http://localhost:8484/rest/secured/resource/message`
+  
+Now we are going to get a valid token at RHSSO and call again the secured service
 
+RESULT=`curl --data "grant_type=password&client_id=fuse-client&username=rchies&password=rchies" http://localhost:8080/auth/realms/master/protocol/openid-connect/token`
 
-Configuration in RH-SSO
------------------------
+TOKEN=`echo $RESULT | sed 's/.*access_token":"//g' | sed 's/".*//g'`
 
-Prior to running the quickstart you need to create a client in RH-SSO and download the installation file.
+curl http://localhost:8484/rest/secured/resource/message -H "Authorization: bearer $TOKEN"
 
-The following steps shows how to create the client required for this quickstart:
-
-* Open the RH-SSO admin console
-* Select `Clients` from the menu
-* Click `Create`
-* Add the following values:
-  * Client ID: You choose (for example `fuse-service-cxf`)
-  * Client Protocol: `openid-connect`
-* Click `Save`
-
-Once saved you need to change the `Access Type` to `bearer-only` and click save.
-
-Finally you need to configure the adapter, this is done by retrieving the adapter configuration file:
-
-* Click on `Installation` in the tab for the client you created
-* Select `Keycloak OIDC JSON`
-* Click `Download`
-* Move the file `keycloak.json` to the directory `src/main/resources/config/`in the quickstart
-
-You may also want to enable CORS for the service if you want to allow invocations from HTML5 applications deployed to a
-different host. To do this edit `keycloak.json` and add:
-
-````
-{
-   ...
-   "enable-cors": true
-}
-````
-
-As an alternative you can create the client by importing the file [client-import.json](config/client-import.json) and
-copying [config/keycloak-example.json](config/keycloak-example.json) to `src/main/resources/config/keycloak.json`.
-
-Build the Quickstart
---------------------
-
-1. Open a terminal and navigate to the root directory of this quickstart.
-
-2. Build the quickstart with:
-````
-mvn clean install
-````
-
-Deploy the Quickstart
----------------------
-There are 2 alternatives:
-- Deploy as the Karaf feature together with other Fuse quickstarts. See [Features README](../features/README.md) for more details.
-- Deploy separately. This can be done by running those commands in JBoss Fuse Karaf terminal (See [parent README](../README.md) for details about RHSSO_VERSION variable) :
-
-````
-osgi:install mvn:com.redhat.rh-sso/rh-sso-service-cxf-jaxrs/$RHSSO_VERSION
-````
-Command will output Bundle ID. For example:
-````
-Bundle ID: 435
-````
-You will use this as the input to the next command:
-````
-osgi:start 435
-````
-
-Access the Quickstart
----------------------
-
-The endpoints for the service are:
-
-* public - <http://localhost:8282/service/public>
-* secured - <http://localhost:8282/service/secured>
-* admin - <http://localhost:8282/service/admin>
-
-You can open the public endpoint directly in the browser to test the service. The two other endpoints require
-invoking with a bearer token. To invoke these endpoints use the example quickstart:
-
-* [app-war-jsp](../app-war/README.md) - JSP application packaged that invokes the example service. Requires service example to be deployed.
-
-
-Undeploy the Quickstart
------------------------
-If you used Karaf feature, then see [Features README](../features/README.md) for more details. Otherwise use those commands (again replace 
-with the proper bundle ID):
-````
-osgi:stop 435
-osgi:uninstall 435
-````
+Now yopu should receive a 200 response
